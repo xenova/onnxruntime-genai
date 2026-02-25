@@ -3,7 +3,7 @@
 # Licensed under the MIT License.  See License.txt in the project root for
 # license information.
 # --------------------------------------------------------------------------
-import numpy as np
+import torch
 import onnx_ir as ir
 
 from .base import Model
@@ -181,7 +181,7 @@ class Lfm2Model(Model):
             inputs=[
                 conv_out_full,
                 f"{unsqueeze_starts_name}/output_0",
-                f"/model/constants/INT64/[{np.iinfo(np.int64).max}]",
+                f"/model/constants/INT64/[{torch.iinfo(torch.int64).max}]",
                 "/model/constants/INT64/[2]",
             ],
             outputs=[conv_out],
@@ -201,7 +201,7 @@ class Lfm2Model(Model):
             inputs=[
                 conv_input,
                 f"/model/constants/INT64/[-{self.conv_L_cache}]",
-                f"/model/constants/INT64/[{np.iinfo(np.int64).max}]",
+                f"/model/constants/INT64/[{torch.iinfo(torch.int64).max}]",
                 "/model/constants/INT64/[2]",
             ],
             outputs=[present_conv_name],
