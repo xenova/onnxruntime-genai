@@ -9,7 +9,7 @@ import onnx_ir as ir
 from .base import Model
 
 
-class Lfm2Model(Model):
+class LFM2Model(Model):
     def __init__(self, config, io_dtype, onnx_dtype, ep, cache_dir, extra_options):
         config.hidden_act = "silu"
         super().__init__(config, io_dtype, onnx_dtype, ep, cache_dir, extra_options)
