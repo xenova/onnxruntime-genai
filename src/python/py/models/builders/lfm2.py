@@ -131,7 +131,7 @@ class LFM2Model(Model):
 
         # 2. Stateful convolution: concatenate with past conv cache
         past_conv_name = f"past_conv.{layer_id}"
-        conv_input_name = f"{basename}/Conv_Input"
+        conv_input_name = f"{basename}/Conv"
         self.make_concat(
             conv_input_name, [past_conv_name, f"{mul_1_name}/output_0"], self.io_dtype,
             shape=["batch_size", self.hidden_size, "past_plus_current_seq_len"], axis=2,
@@ -157,25 +157,25 @@ class LFM2Model(Model):
         # Slice the conv output to keep only the last seq_len elements (obtained from root_input shape)
         shape_name = f"{basename}/Shape"
         self.make_shape(shape_name, root_input, shape=[3])
-        seq_len_gather_name = f"{basename}/Gather_SeqLen"
+        seq_len_gather_name = f"{basename}/Gather"
         self.make_gather(
             seq_len_gather_name, [f"{shape_name}/output_0", "/model/constants/INT64/1"],
             dtype=ir.DataType.INT64, shape=[], axis=0,
         )
 
-        neg_seq_len_name = f"{basename}/Neg_Seq_Len"
+        neg_seq_len_name = f"{basename}/Neg"
         self.make_mul(
             neg_seq_len_name, [f"{seq_len_gather_name}/output_0", "/model/constants/INT64/-1"],
             ir.DataType.INT64, shape=[],
         )
 
-        unsqueeze_starts_name = f"{basename}/Unsqueeze_starts"
+        unsqueeze_starts_name = f"{basename}/Unsqueeze"
         self.make_unsqueeze(
             unsqueeze_starts_name, [f"{neg_seq_len_name}/output_0", "/model/constants/INT64/[0]"],
             ir.DataType.INT64, shape=[1],
         )
 
-        slice_name = f"{basename}/Slice_Conv_Output"
+        slice_name = f"{basename}/Slice_1"
         conv_out = f"{slice_name}/output_0"
         self.make_node(
             "Slice",
@@ -196,7 +196,7 @@ class LFM2Model(Model):
 
         # 3. Cache update: slice the conv input to keep last conv_L_cache elements
         present_conv_name = f"present_conv.{layer_id}"
-        slice_cache_name = f"{basename}/Slice_Cache"
+        slice_cache_name = f"{basename}/Slice_2"
         self.make_node(
             "Slice",
             inputs=[
