@@ -178,18 +178,17 @@ class LFM2Model(Model):
 
         slice_name = f"{basename}/Slice_1"
         conv_out = f"{slice_name}/output_0"
-        self.make_node(
-            "Slice",
+        self.make_slice(
+            slice_name,
             inputs=[
                 conv_out_full,
                 f"{unsqueeze_starts_name}/output_0",
                 f"/model/constants/INT64/[{torch.iinfo(torch.int64).max}]",
                 "/model/constants/INT64/[2]",
             ],
-            outputs=[conv_out],
-            name=slice_name,
+            dtype=self.io_dtype,
+            shape=["batch_size", self.hidden_size, "sequence_length"],
         )
-        self.make_value(conv_out, self.io_dtype, shape=["batch_size", self.hidden_size, "sequence_length"])
 
         # Element-wise multiply: result = c * conv_out
         mul_2_name = f"{basename}/Mul_2"
@@ -198,18 +197,18 @@ class LFM2Model(Model):
         # 3. Cache update: slice the conv input to keep last conv_L_cache elements
         present_conv_name = f"present_conv.{layer_id}"
         slice_cache_name = f"{basename}/Slice_2"
-        self.make_node(
-            "Slice",
+        self.make_slice(
+            slice_cache_name,
             inputs=[
                 conv_input,
                 f"/model/constants/INT64/[-{self.conv_L_cache}]",
                 f"/model/constants/INT64/[{torch.iinfo(torch.int64).max}]",
                 "/model/constants/INT64/[2]",
             ],
-            outputs=[present_conv_name],
-            name=slice_cache_name,
+            dtype=self.io_dtype,
+            shape=["batch_size", self.hidden_size, self.conv_L_cache],
+            output=present_conv_name,
         )
-        self.make_value(present_conv_name, self.io_dtype, shape=["batch_size", self.hidden_size, self.conv_L_cache])
 
         # 4. Output processing: transpose back and project
         transpose_2_name = f"{basename}/Transpose_2"
