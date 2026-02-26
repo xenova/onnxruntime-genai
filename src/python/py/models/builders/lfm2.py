@@ -134,7 +134,7 @@ class LFM2Model(Model):
         conv_input_name = f"{basename}/Conv"
         self.make_concat(
             conv_input_name, [past_conv_name, f"{mul_1_name}/output_0"], self.io_dtype,
-            shape=["batch_size", self.hidden_size, "past_plus_current_seq_len"], axis=2,
+            shape=["batch_size", self.hidden_size, "total_sequence_length"], axis=2,
         )
         conv_input = f"{conv_input_name}/output_0"
 
