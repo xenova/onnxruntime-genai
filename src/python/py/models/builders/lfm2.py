@@ -19,13 +19,14 @@ class LFM2Model(Model):
         self.rope_attrs["theta"] = config.rope_parameters["rope_theta"]
 
         # Calculate the dynamic intermediate_size for the MLP.
-        intermediate_size = self.intermediate_size
-        if getattr(config, "block_auto_adjust_ff_dim", False):
+        intermediate_size = config.intermediate_size
+        if config.block_auto_adjust_ff_dim:
             intermediate_size = int(2 * intermediate_size / 3)
-            if getattr(config, "block_ffn_dim_multiplier", None) is not None:
+            if config.block_ffn_dim_multiplier is not None:
                 intermediate_size = int(config.block_ffn_dim_multiplier * intermediate_size)
-            multiple_of = getattr(config, "block_multiple_of", 1)
-            intermediate_size = multiple_of * ((intermediate_size + multiple_of - 1) // multiple_of)
+                intermediate_size = config.block_multiple_of * (
+                    (intermediate_size + config.block_multiple_of - 1) // config.block_multiple_of
+                )
         self.intermediate_size = intermediate_size
 
         # Hybrid attention/convolution architecture
