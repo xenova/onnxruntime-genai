@@ -131,7 +131,7 @@ class LFM2Model(Model):
 
         # 2. Stateful convolution: concatenate with past conv cache
         past_conv_name = f"past_conv.{layer_id}"
-        conv_input_name = f"{basename}/Conv"
+        conv_input_name = f"{basename}/Conv_1"
         self.make_concat(
             conv_input_name, [past_conv_name, f"{mul_1_name}/output_0"], self.io_dtype,
             shape=["batch_size", self.hidden_size, "total_sequence_length"], axis=2,
@@ -139,7 +139,7 @@ class LFM2Model(Model):
         conv_input = f"{conv_input_name}/output_0"
 
         # Depthwise convolution (group=hidden_size)
-        conv_op_name = f"{basename}/Conv"
+        conv_op_name = f"{basename}/Conv_2"
         conv_weight_name = f"model.layers.{layer_id}.conv.conv.weight"
         self.make_initializer(conv_module.conv.weight, conv_weight_name, to=self.io_dtype)
         conv_inputs = [conv_input, conv_weight_name]
@@ -153,6 +153,7 @@ class LFM2Model(Model):
             "Conv", inputs=conv_inputs, outputs=[conv_out_full], name=conv_op_name,
             kernel_shape=[self.conv_L_cache], pads=[0, 0], group=self.hidden_size,
         )
+        self.make_value(conv_out_full, self.io_dtype, shape=["batch_size", self.hidden_size, "conv_output_sequence_length"])
 
         # Slice the conv output to keep only the last seq_len elements (obtained from root_input shape)
         shape_name = f"{basename}/Shape"
