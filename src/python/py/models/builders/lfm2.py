@@ -124,7 +124,7 @@ class LFM2Model(Model):
         self.make_mul(mul_1_name, [b_out, x_out], self.io_dtype, shape=["batch_size", self.hidden_size, "sequence_length"])
 
         # 2. Stateful convolution: concatenate with past conv cache
-        past_conv_name = f"past_conv.{layer_id}"
+        past_conv_name = self.input_names[f"past_conv.{layer_id}"]
         conv_input_name = f"{basename}/Conv_1"
         self.make_concat(
             conv_input_name, [past_conv_name, f"{mul_1_name}/output_0"], self.io_dtype,
