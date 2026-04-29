@@ -762,18 +762,6 @@ bool IsCacheNeeded(const Model& model) {
   return false;
 }
 
-// For hybrid models, the first KV cache input may not be at layer 0.
-// Find the first attention layer index to check if cache is needed.
-bool IsLFM2CacheNeeded(const Model& model) {
-  const auto& layer_types = model.config_->model.decoder.layer_types;
-  for (int i = 0; i < static_cast<int>(layer_types.size()); ++i) {
-    if (layer_types[i] == "full_attention") {
-      return model.session_info_.HasInput(ComposeKeyValueName(model.config_->model.decoder.inputs.past_key_names, i));
-    }
-  }
-  return false;
-}
-
 }  // namespace
 
 std::unique_ptr<KeyValueCache> CreateKeyValueCache(State& state) {
@@ -788,7 +776,7 @@ std::unique_ptr<KeyValueCache> CreateKeyValueCache(State& state) {
 
   // LFM2 models interleave attention and conv layers, requiring a cache that handles
   // both KV cache for attention layers and fixed-size conv state for conv layers.
-  if (ModelType::IsLFM2(state.model_.config_->model.type) && IsLFM2CacheNeeded(state.model_)) {
+  if (ModelType::IsLFM2(state.model_.config_->model.type)) {
     return std::make_unique<LFM2Cache>(state);
   }
 
